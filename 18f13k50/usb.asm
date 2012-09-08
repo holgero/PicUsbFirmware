@@ -40,7 +40,7 @@
 
 ;**************************************************************
 ; exported variables
-	global	LED_states
+	global	USB_data
 	global	USB_received
 ;**************************************************************
 ; imported subroutines
@@ -153,7 +153,7 @@ USB_packet_length	RES	1
 USB_USTAT		RES	1
 USB_USWSTAT		RES	1
 USB_received		RES	1
-LED_states		RES	5
+USB_data		RES	8
 
 ;**************************************************************
 ; code section
@@ -729,25 +729,31 @@ classRequests
 	dispatchRequest	SET_IDLE, classSetIdle
 	goto	standardRequestsError
 
-classGetReport				; report current LED_state
+classGetReport				; report current content of USB_data
 	banksel	BD1ADRH
 	movf	BD1ADRH, W, BANKED	; put EP0 IN buffer pointer...
 	movwf	FSR0H, ACCESS
 	movf	BD1ADRL, W, BANKED
 	movwf	FSR0L, ACCESS		; ...into FSR0
-	banksel LED_states
-	movf	LED_states, W, BANKED	; red led
+	banksel USB_data
+	movf	USB_data, W, BANKED
 	movwf	POSTINC0
-	movf	LED_states+1, W, BANKED	; yellow led
+	movf	USB_data+1, W, BANKED
 	movwf	POSTINC0
-	movf	LED_states+2, W, BANKED	; green led
+	movf	USB_data+2, W, BANKED
 	movwf	POSTINC0
-	movf	LED_states+3, W, BANKED	; blue led
+	movf	USB_data+3, W, BANKED
 	movwf	POSTINC0
-	movf	LED_states+4, W, BANKED	; white led
+	movf	USB_data+4, W, BANKED
+	movwf	POSTINC0
+	movf	USB_data+5, W, BANKED
+	movwf	POSTINC0
+	movf	USB_data+6, W, BANKED
+	movwf	POSTINC0
+	movf	USB_data+7, W, BANKED
 	movwf	INDF0			; ...to EP0 IN buffer
 	banksel	BD1CNT
-	movlw	0x05
+	movlw	0x08
 	movwf	BD1CNT, BANKED		; set EP0 IN buffer byte count
 	goto	sendAnswer
 
@@ -845,18 +851,24 @@ setReport
 	movwf	FSR0H, ACCESS
 	movf	BD0ADRL, W, BANKED
 	movwf	FSR0L, ACCESS		; ...into FSR0
-	; get five bytes in the buffer and copy to LED_states
-	banksel	LED_states
+	; get contents of the buffer and copy to USB_data
+	banksel	USB_data
 	movf	POSTINC0, W	
-	movwf	LED_states, BANKED
+	movwf	USB_data, BANKED
 	movf	POSTINC0, W	
-	movwf	LED_states+1, BANKED
+	movwf	USB_data+1, BANKED
 	movf	POSTINC0, W	
-	movwf	LED_states+2, BANKED
+	movwf	USB_data+2, BANKED
 	movf	POSTINC0, W	
-	movwf	LED_states+3, BANKED
-	movf	INDF0, W	
-	movwf	LED_states+4, BANKED
+	movwf	USB_data+3, BANKED
+	movf	POSTINC0, W	
+	movwf	USB_data+4, BANKED
+	movf	POSTINC0, W	
+	movwf	USB_data+5, BANKED
+	movf	POSTINC0, W	
+	movwf	USB_data+6, BANKED
+	movf	INDF0, W
+	movwf	USB_data+7, BANKED
 	bsf	USB_received,0,BANKED
 	return
 
@@ -929,12 +941,15 @@ WaitConfiguredUSB
 	btfss	STATUS,Z,ACCESS
 	goto	WaitConfiguredUSB	; ...until the host configures the peripheral
 
-	banksel	LED_states
-	clrf	LED_states, BANKED
-	clrf	LED_states+1, BANKED
-	clrf	LED_states+2, BANKED
-	clrf	LED_states+3, BANKED
-	clrf	LED_states+4, BANKED
+	banksel	USB_data
+	clrf	USB_data, BANKED
+	clrf	USB_data+1, BANKED
+	clrf	USB_data+2, BANKED
+	clrf	USB_data+3, BANKED
+	clrf	USB_data+4, BANKED
+	clrf	USB_data+5, BANKED
+	clrf	USB_data+6, BANKED
+	clrf	USB_data+7, BANKED
 	return
 
 enableUSBInterrupts
