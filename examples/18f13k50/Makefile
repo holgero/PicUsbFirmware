@@ -16,15 +16,18 @@
 #  limitations under the License.
 
 FIRMWARE=../../18f13k50
-OBJECTS=main.o descriptor.o
+OBJECTS=main.o descriptor.o vectors.o
 
 %.o : %.asm
 	gpasm -c -p p18f13k50 -r dec -w 2 --define VID=0x$(VID) --define PID=0x$(PID) -I $(FIRMWARE) $<
 
-all: firmware.hex
+all: firmware.hex firmware_nobootloader.hex
 
 firmware.hex: $(OBJECTS)
-	gplink -o firmware.hex -a inhx32 -m $(OBJECTS) $(FIRMWARE)/usb.o
+	gplink -o firmware.hex -a inhx32 -m $(OBJECTS) $(FIRMWARE)/usb.o -s 18f13k50_bootloader.lkr
+
+firmware_nobootloader.hex: $(OBJECTS) vectors_nobootloader.o
+	gplink -o firmware_nobootloader.hex -a inhx32 -m $(OBJECTS) vectors_nobootloader.o $(FIRMWARE)/usb.o
 
 clean:
 	rm -f *.o *.map *.lst *.cod *.hex
