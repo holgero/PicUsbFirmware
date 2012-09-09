@@ -25,7 +25,7 @@ OBJECTS=main.o descriptor.o
 all: firmware.hex
 
 firmware.hex: $(OBJECTS)
-	gplink -o firmware.hex -a inhx32 -m $(OBJECTS) $(FIRMWARE)/usb.o
+	gplink -o firmware.hex -a inhx32 -m $(OBJECTS) $(FIRMWARE)/usb.o -s 18f2550_bootloader.lkr
 
 clean:
 	rm -f *.o *.map *.lst *.cod *.hex
